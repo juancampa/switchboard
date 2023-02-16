@@ -32,8 +32,7 @@ futures-channel = "0.3.21"
 enclose = "1.1.8"
 async-trait = "0.1.53"
 uuid = { version = "1.0.0", features = ["v4", "serde"]}
-
-webrtc = "0.6.0"
+webrtc = { git = "https://github.com/juancampa/webrtc", rev="2fe09c9c1093d3cd64dbee3d3b8e4aad43356e6c" }
 
 #libp2p experiment
 #libp2p = { version = "0.40.0", features = ["tcp-tokio"], optional = true}

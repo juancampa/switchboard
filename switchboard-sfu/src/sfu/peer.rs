@@ -4,12 +4,12 @@ use enclose::enc;
 use futures::{SinkExt, StreamExt};
 use futures_channel::mpsc;
 use log::*;
-use webrtc::rtp_transceiver::rtp_codec::{RTCRtpHeaderExtensionCapability, RTPCodecType};
 use std::default::Default;
 use std::sync::Arc;
 use uuid::Uuid;
 use webrtc::api::setting_engine::SettingEngine;
 use webrtc::peer_connection::peer_connection_state::RTCPeerConnectionState;
+use webrtc::rtp_transceiver::rtp_codec::{RTCRtpHeaderExtensionCapability, RTPCodecType};
 
 use webrtc::api::interceptor_registry::register_default_interceptors;
 use webrtc::api::media_engine::MediaEngine;
@@ -233,10 +233,8 @@ impl Peer {
         let pub_rtcp_tx = self.pub_rtcp_writer.clone();
         self.publisher
             .on_track(Box::new(enc!( (session_tx) {
-                move |track: Option<Arc<TrackRemote>>, receiver: Option<Arc<RTCRtpReceiver>>| {
+                move |track: Arc<TrackRemote>, receiver: Arc<RTCRtpReceiver>, _transceiver| {
                     Box::pin( enc!( (mut session_tx, pub_rtcp_tx) async move {
-
-                    if let (Some(track), Some(receiver)) = (track,receiver) {
                         tokio::spawn(async move {
                             let id = track.id().await;
                             let (media_track_router, closed) = MediaTrackRouter::new(track, receiver, pub_rtcp_tx).await;
@@ -244,9 +242,6 @@ impl Peer {
                             let _ = closed.await;
                             session_tx.send(SessionEvent::TrackRemoved(id)).await.expect("error sending track removed");
                         });
-                    } else {
-                        warn!("on track called with no track!");
-                    }
                 }))
                 }}
             )));
